@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG GOLANG_VERSION=1.22.6
+ARG GOLANG_VERSION=1.25.1
 FROM nvcr.io/nvidia/cuda:12.9.0-base-ubi9 AS build
 
-RUN yum install -y \
+RUN yum update -y && yum upgrade -y && yum install -y \
     wget make git gcc \
      && \
     rm -rf /var/cache/yum/*
 
-ARG GOLANG_VERSION=x.x.x
+ARG GOLANG_VERSION=1.25.1
 RUN set -eux; \
     \
     arch="$(uname -m)"; \
@@ -33,8 +33,8 @@ RUN set -eux; \
     wget -nv -O - https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-${ARCH}.tar.gz \
     | tar -C /usr/local -xz
 
-ENV GOPATH /go
-ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+ENV GOPATH=/go
+ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 
 WORKDIR /build
 COPY . .
@@ -52,6 +52,8 @@ RUN rpm -qa | sort -u > /tmp/package-list.minimal
 
 # We define the following image as a base image and remove unneeded packages.
 FROM nvcr.io/nvidia/cuda:12.9.0-base-ubi9 AS base
+
+RUN yum update -y && yum upgrade -y
 
 WORKDIR /cleanup
 
